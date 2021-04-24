@@ -15,8 +15,8 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - id: set-matrix
+      name: set-matrix
       run: |
-        ls -lha
         .github/workflows/ci.generate_json_matrix.sh
   debug:
     needs: pre-build

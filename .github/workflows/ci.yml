@@ -4,53 +4,103 @@ on:
   push:
     branches:
       - 'master'
+      - 'feat-*'
 
 jobs:
   pre-build:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
+      bin_version: ${{ steps.set-bin-version.outputs.bin_version }}
     steps:
+    - name: checkout
+      uses: actions/checkout@v2
     - id: set-matrix
+      name: set-matrix
       run: |
-        JSON_MATRIX="{ \"include\": [] }"
-        while IFS="=", read -r ARCH BIN
-        do
-            JSON_MATRIX=$(echo "$JSON_MATRIX" | jq ".include += [
-                {\"arch\": \"$ARCH\",\"bin\": \"$BIN\"} ]")
-        done < MAP_ARCH_TRANSLATOR
-        echo "::set-output name=matrix::$JSON_MATRIX"
-  debug:
+        .github/workflows/ci.generate_json_matrix.sh
+    - id: set-bin-version
+      name: set-bin-version
+      run: |
+        PAGE_URL="https://www.speedtest.net/apps/cli#linux-flyout"
+        PAGE_CONTENT=$(curl $PAGE_URL 2>/dev/null)
+
+        LATEST_VERSION=$( echo "$PAGE_CONTENT" | grep -Poh "https:\/\/install\.speedtest\.net\/app\/cli\/ookla-speedtest-\d+\.\d+\.\d+-x86_64-linux\.tgz" | rev | cut -d / -f 1 | rev | cut -d "-" -f 3)
+
+        echo "::set-output name=bin_version::$LATEST_VERSION"
+
+  docker:
     needs: pre-build
+    strategy:
+      matrix: ${{ fromJson(needs.pre-build.outputs.matrix) }}
     runs-on: ubuntu-latest
     steps:
-    - run: |
-        echo ${{ needs.pre-build.outputs.matrix }}
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          platforms: linux/${{ matrix.arch }}
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/speedtest-cli:${{ matrix.docker_arch_label }}_${{ needs.pre-build.outputs.bin_version }},${{ secrets.DOCKERHUB_USERNAME }}/speedtest-cli:${{ matrix.docker_arch_label }}_latest
+          build-args: |
+            binVersion=${{ needs.pre-build.outputs.bin_version }}
+            binArch=${{ matrix.bin_arch }}
 
+  docker_amend:
+    needs: [ pre-build, docker ]
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Join the docker builds
+        # it just creates
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          function run_docker_amend(){
+              DOCKER_VERSION=$1
+              REPO_PREFIX="${DOCKERHUB_USERNAME}/speedtest-cli"
 
-  # docker:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     -
-  #       name: Checkout
-  #       uses: actions/checkout@v2
-  #     -
-  #       name: Set up QEMU
-  #       uses: docker/setup-qemu-action@v1
-  #     -
-  #       name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v1
-  #     -
-  #       name: Login to DockerHub
-  #       uses: docker/login-action@v1
-  #       with:
-  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
-  #     -
-  #       name: Build and push
-  #       uses: docker/build-push-action@v2
-  #       with:
-  #         context: .
-  #         platforms: linux/amd64,linux/arm64
-  #         push: true
-  #         tags: user/app:latest
+              echo "repo prefix: $REPO_PREFIX"
+
+              DOCKER_AMEND_COMMAND="docker manifest create $REPO_PREFIX:$DOCKER_VERSION"
+              while IFS="=", read -r ARCH ARCH_BIN
+              do
+                  # Replaces the arch / by _ to use as docker labels
+                  DOCKER_ARCH_LABEL=$(echo "$ARCH" | sed "s/\//_/")
+                  DOCKER_AMEND_COMMAND="$DOCKER_AMEND_COMMAND --amend $REPO_PREFIX:${DOCKER_ARCH_LABEL}_${DOCKER_VERSION}"
+
+              done < MAP_ARCH_TRANSLATOR
+
+              # Executes the command and pushes the amend to dh
+              $DOCKER_AMEND_COMMAND
+              docker manifest push $REPO_PREFIX:$DOCKER_VERSION
+          }
+
+          run_docker_amend "${{ needs.pre-build.outputs.bin_version }}"
+          run_docker_amend "latest"
+
+ 

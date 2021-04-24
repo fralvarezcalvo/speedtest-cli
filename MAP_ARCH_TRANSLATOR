@@ -1,5 +1,5 @@
-linux/386=i386
-linux/amd64=x86_64
-linux/arm/v6=arm
-linux/arm/v7=armhf
-linux/arm64/v8=aarch64
+386=i386
+amd64=x86_64
+arm/v6=arm
+arm/v7=armhf
+arm64/v8=aarch64

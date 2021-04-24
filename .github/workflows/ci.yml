@@ -57,13 +57,13 @@ jobs:
           context: .
           platforms: linux/${{ matrix.arch }}
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/speedtest-cli:${{ matrix.docker_arch_label }}_${{ needs.pre-build.outputs.bin_version }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/speedtest-cli:${{ matrix.docker_arch_label }}_${{ needs.pre-build.outputs.bin_version }},${{ secrets.DOCKERHUB_USERNAME }}/speedtest-cli:${{ matrix.docker_arch_label }}_latest
           build-args: |
             binVersion=${{ needs.pre-build.outputs.bin_version }}
             binArch=${{ matrix.bin_arch }}
 
   docker_amend:
-    needs: docker
+    needs: [ pre-build, docker ]
     runs-on: ubuntu-latest
     steps:
       -

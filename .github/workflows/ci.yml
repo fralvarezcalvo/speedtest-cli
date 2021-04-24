@@ -26,8 +26,6 @@ jobs:
     steps:
     - run: |
         echo ${{ needs.pre-build.outputs.matrix }}
-        echo ";;;"
-        echo ${{ pre-build.outputs.matrix }}
 
 
   # docker:

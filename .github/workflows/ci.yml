@@ -62,5 +62,42 @@ jobs:
             binVersion=${{ needs.pre-build.outputs.bin_version }}
             binArch=${{ matrix.bin_arch }}
 
+  docker_ammend:
+    needs: docker
+    strategy:
+      matrix: ${{ fromJson(needs.pre-build.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Join the docker 
+        run: |
+          function run_docker_amend(){
+              DOCKER_VERSION=$1
+              REPO_PREFIX="${{ secrets.DOCKERHUB_USERNAME }}/speedtest-cli"
 
-            
+              DOCKER_AMEND_COMMAND="docker manifest create $REPO_PREFIX:$DOCKER_VERSION"
+              while IFS="=", read -r ARCH ARCH_BIN
+              do
+                  # Replaces the arch / by _ to use as docker labels
+                  DOCKER_ARCH_LABEL=$(echo "$ARCH" | sed "s/\//_/")
+                  DOCKER_AMEND_COMMAND="$DOCKER_AMEND_COMMAND --amend REPO_PREFIX:${DOCKER_ARCH_LABEL}_${DOCKER_VERSION}"
+
+              done < MAP_ARCH_TRANSLATOR
+
+              # Executes the command and pushes the amend to dh
+              $DOCKER_AMEND_COMMAND
+              docker manifest push $REPO_PREFIX:$DOCKER_VERSION
+          }
+
+          run_docker_amend "${{ needs.pre-build.outputs.bin_version }}"
+          run_docker_amend "latest"
+
+ 

@@ -15,4 +15,6 @@ RUN tar -xzf ookla-speedtest-*-linux.tgz && \
 # Optional
 #RUN apk update && apk upgrade && apk add bash
 
+LABEL org.opencontainers.image.source=https://github.com/fralvarezcalvo/speedtest-cli
+
 ENTRYPOINT [ "./speedtest", "--accept-license", "--accept-gdpr" ]

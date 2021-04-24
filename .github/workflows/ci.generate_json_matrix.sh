@@ -13,4 +13,6 @@ done < MAP_ARCH_TRANSLATOR
 
 JSON_MATRIX=$( echo "$JSON_MATRIX" | jq -c . )
 
+echo "GHA JSON Matrix: $JSON_MATRIX"
+
 echo "::set-output name=matrix::$JSON_MATRIX"

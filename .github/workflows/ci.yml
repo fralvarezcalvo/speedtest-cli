@@ -14,7 +14,8 @@ jobs:
     steps:
     - id: set-matrix
       run: |
-        .github/workflows/ci.generate_json_matrix.sh
+        ls -lha
+        #.github/workflows/ci.generate_json_matrix.sh
   debug:
     needs: pre-build
     runs-on: ubuntu-latest

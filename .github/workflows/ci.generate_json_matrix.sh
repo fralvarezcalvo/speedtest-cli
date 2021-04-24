@@ -3,10 +3,10 @@
 # This file just generates a github-actions matrix type to build the images with the corresponding binary. 
 
 JSON_MATRIX="{ \"include\": [] }"
-while IFS="=", read -r ARCH BIN
+while IFS="=", read -r ARCH ARCH_BIN
 do
     JSON_MATRIX=$(echo "$JSON_MATRIX" | jq ".include += [
-        {\"arch\": \"$ARCH\",\"arch_bin\": \"$BIN\"} ]")
+        {\"arch\": \"$ARCH\",\"bin_arch\": \"$ARCH_BIN\"} ]")
 done < MAP_ARCH_TRANSLATOR
 
 JSON_MATRIX=$( echo "$JSON_MATRIX" | jq -c . )

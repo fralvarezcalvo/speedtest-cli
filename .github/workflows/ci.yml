@@ -55,9 +55,12 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          platforms: ${{ matrix.arch }}
+          platforms: linux/${{ matrix.arch }}
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/speedtest-cli:latest,${{ secrets.DOCKERHUB_USERNAME }}/speedtest-cli:${{ needs.pre-build.outputs.bin_version }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/speedtest-cli:${{ needs.pre-build.outputs.docker_arch_label }}_${{ needs.pre-build.outputs.bin_version }}
           build-args: |
             binVersion=${{ needs.pre-build.outputs.bin_version }}
             binArch=${{ matrix.bin_arch }}
+
+
+            

@@ -82,7 +82,10 @@ jobs:
         run: |
           function run_docker_amend(){
               DOCKER_VERSION=$1
-              REPO_PREFIX="$DOCKERHUB_USERNAME/speedtest-cli"
+              REPO_PREFIX="${DOCKERHUB_USERNAME}/speedtest-cli"
+
+              echo "repo prefix:"
+              echo $REPO_PREFIX
 
               DOCKER_AMEND_COMMAND="docker manifest create $REPO_PREFIX:$DOCKER_VERSION"
               while IFS="=", read -r ARCH ARCH_BIN

@@ -9,4 +9,4 @@ do
         {\"arch\": \"$ARCH\",\"bin\": \"$BIN\"} ]")
 done < MAP_ARCH_TRANSLATOR
 
-echo "::set-output name=matrix::$JSON_MATRIX"
+echo "::set-output name=matrix::\"$JSON_MATRIX\""

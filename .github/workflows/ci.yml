@@ -12,14 +12,14 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
     - id: set-matrix
-    run: |
-      JSON_MATRIX="{ \"include\": [] }"
-      while IFS="=", read -r ARCH BIN
-      do
-          JSON_MATRIX=$(echo "$JSON_MATRIX" | jq ".include += [
-              {\"arch\": \"$ARCH\",\"bin\": \"$BIN\"} ]")
-      done < MAP_ARCH_TRANSLATOR
-      echo "::set-output name=matrix::$JSON_MATRIX"
+      run: |
+        JSON_MATRIX="{ \"include\": [] }"
+        while IFS="=", read -r ARCH BIN
+        do
+            JSON_MATRIX=$(echo "$JSON_MATRIX" | jq ".include += [
+                {\"arch\": \"$ARCH\",\"bin\": \"$BIN\"} ]")
+        done < MAP_ARCH_TRANSLATOR
+        echo "::set-output name=matrix::$JSON_MATRIX"
   debug:
     needs: pre-build
     runs-on: ubuntu-latest

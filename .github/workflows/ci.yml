@@ -62,7 +62,7 @@ jobs:
             binVersion=${{ needs.pre-build.outputs.bin_version }}
             binArch=${{ matrix.bin_arch }}
 
-  docker_ammend:
+  docker_amend:
     needs: docker
     strategy:
       matrix: ${{ fromJson(needs.pre-build.outputs.matrix) }}
@@ -77,7 +77,8 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Join the docker 
+      - name: Join the docker builds
+        # it just creates  
         run: |
           function run_docker_amend(){
               DOCKER_VERSION=$1

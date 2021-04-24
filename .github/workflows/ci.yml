@@ -64,8 +64,6 @@ jobs:
 
   docker_amend:
     needs: docker
-    strategy:
-      matrix: ${{ fromJson(needs.pre-build.outputs.matrix) }}
     runs-on: ubuntu-latest
     steps:
       -

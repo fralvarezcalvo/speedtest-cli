@@ -6,7 +6,7 @@ JSON_MATRIX="{ \"include\": [] }"
 while IFS="=", read -r ARCH BIN
 do
     JSON_MATRIX=$(echo "$JSON_MATRIX" | jq ".include += [
-        {\"arch\": \"$ARCH\",\"bin\": \"$BIN\"} ]")
+        {\"arch\": \"$ARCH\",\"arch_bin\": \"$BIN\"} ]")
 done < MAP_ARCH_TRANSLATOR
 
 JSON_MATRIX=$( echo "$JSON_MATRIX" | jq -c . )

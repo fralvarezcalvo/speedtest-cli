@@ -84,15 +84,14 @@ jobs:
               DOCKER_VERSION=$1
               REPO_PREFIX="${DOCKERHUB_USERNAME}/speedtest-cli"
 
-              echo "repo prefix:"
-              echo $REPO_PREFIX
+              echo "repo prefix: $REPO_PREFIX"
 
               DOCKER_AMEND_COMMAND="docker manifest create $REPO_PREFIX:$DOCKER_VERSION"
               while IFS="=", read -r ARCH ARCH_BIN
               do
                   # Replaces the arch / by _ to use as docker labels
                   DOCKER_ARCH_LABEL=$(echo "$ARCH" | sed "s/\//_/")
-                  DOCKER_AMEND_COMMAND="$DOCKER_AMEND_COMMAND --amend REPO_PREFIX:${DOCKER_ARCH_LABEL}_${DOCKER_VERSION}"
+                  DOCKER_AMEND_COMMAND="$DOCKER_AMEND_COMMAND --amend $REPO_PREFIX:${DOCKER_ARCH_LABEL}_${DOCKER_VERSION}"
 
               done < MAP_ARCH_TRANSLATOR
 

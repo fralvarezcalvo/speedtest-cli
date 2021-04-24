@@ -58,6 +58,6 @@ jobs:
           platforms: ${{ matrix.arch }}
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/speedtest-cli:latest,${{ secrets.DOCKERHUB_USERNAME }}/speedtest-cli:${{ needs.pre-build.outputs.bin_version }}
-          build-args:
-            - version: ${{ needs.pre-build.outputs.bin_version }}
-            - arch: ${{ matrix.arch }}
+          build-args: |
+            version=${{ needs.pre-build.outputs.bin_version }}
+            arch=${{ matrix.arch }}
